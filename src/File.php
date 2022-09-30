@@ -8,11 +8,16 @@ abstract class File
 {
     private array $metadata = [];
 
+    public DriverClient $client;
+    public string $identifier;
+
     public function __construct(
-        public readonly DriverClient $client,
-        public readonly string $identifier,
+        DriverClient $client,
+        string $identifier
     )
     {
+        $this->client = $client;
+        $this->identifier = $identifier;
     }
 
     public function getMetadata(): array
@@ -38,7 +43,7 @@ abstract class File
         return $this->client->mimeType($this->identifier);
     }
 
-    public function getParentOfIdentifier(): Directory
+    public function getParentOfIdentifier()
     {
         return $this->client->parentOfIdentifier($this->identifier);
     }

@@ -9,8 +9,11 @@ use Traversable;
 
 class DirectoryIterator implements IteratorAggregate
 {
-    public function __construct(private readonly iterable $directories)
+    private iterable $directories;
+
+    public function __construct(iterable $directories)
     {
+        $this->directories = $directories;
     }
 
     public function getIterator(): Traversable
@@ -20,12 +23,12 @@ class DirectoryIterator implements IteratorAggregate
 
     public function map(callable $map): DirectoryIterator
     {
-        return new self($this->getGenerator(map: $map));
+        return new self($this->getGenerator(null, $map));
     }
 
     public function filter(callable $filter): DirectoryIterator
     {
-        return new self($this->getGenerator(filter: $filter));
+        return new self($this->getGenerator($filter));
     }
 
     private function getGenerator(callable $filter = null, callable $map = null): \Generator

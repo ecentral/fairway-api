@@ -1,12 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Fairway\FairwayFilesystemApi\Adapter\CantoAdapter;
 
-
 use Fairway\CantoSaasApi\Http\LibraryTree\GetDetailsRequest;
 use Fairway\FairwayFilesystemApi\Permission;
-use Stringable;
 
 final class CantoPermission extends Permission
 {
@@ -57,11 +56,8 @@ final class CantoPermission extends Permission
             ][$type][$action] ?? false;
     }
 
-    private function parseIdentifier(string|Stringable $identifier): CantoIdentifier
+    private function parseIdentifier(string $identifier): CantoIdentifier
     {
-        if ($identifier instanceof CantoIdentifier) {
-            return $identifier;
-        }
-        return new CantoIdentifier((string)$identifier);
+        return new CantoIdentifier($identifier);
     }
 }

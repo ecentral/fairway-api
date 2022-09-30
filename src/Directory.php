@@ -4,15 +4,9 @@ declare(strict_types=1);
 
 namespace Fairway\FairwayFilesystemApi;
 
-/**
- * todo: give this class some love and filling
- */
 abstract class Directory
 {
-    public function getIdentifier()
-    {
-
-    }
+    abstract public function getIdentifier(): string;
 
     abstract public function getFileName(): string;
 
@@ -21,4 +15,6 @@ abstract class Directory
     abstract public function getMTime(): int;
 
     abstract public function getCTime(): int;
+
+    abstract public function getParentDirectory(): Directory;
 }

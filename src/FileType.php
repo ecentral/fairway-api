@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Fairway\FairwayFilesystemApi;
 
-enum FileType
+class FileType
 {
-    case File;
-    case Directory;
+    public const FILE = 'File';
+    public const DIRECTORY = 'Directory';
 }

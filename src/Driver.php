@@ -4,114 +4,115 @@ declare(strict_types=1);
 
 namespace Fairway\FairwayFilesystemApi;
 
-use ReturnTypeWillChange;
-use Stringable;
-
 class Driver implements Filesystem
 {
+    protected DriverClient $driverClient;
+    protected Config $config;
+
     public function __construct(
-        private readonly DriverClient $driverClient,
-        private readonly Config $config = new Config()
+        DriverClient $driverClient,
+        Config $config = null
     ) {
+        $this->driverClient = $driverClient;
+        $this->config = $config ?? new Config();
     }
 
-    public function exists(string|Stringable $identifier, FileType $type): bool
+    public function exists(string $identifier, string $type): bool
     {
         return $this->driverClient->exists($identifier, $type);
     }
 
     public function directoryExists(string $identifier): bool
     {
-        return $this->exists($identifier, FileType::Directory);
+        return $this->exists($identifier, FileType::DIRECTORY);
     }
 
     public function fileExists(string $identifier): bool
     {
-        return $this->exists($identifier, FileType::File);
+        return $this->exists($identifier, FileType::FILE);
     }
 
-    public function getType(string|Stringable $identifier): FileType
+    public function getType(string $identifier): string
     {
         return $this->driverClient->getType($identifier);
     }
 
     public function isDirectory(string $identifier): bool
     {
-        return $this->getType($identifier) === FileType::Directory;
+        return $this->getType($identifier) === FileType::DIRECTORY;
     }
 
     public function isFile(string $identifier): bool
     {
-        return $this->getType($identifier) === FileType::File;
+        return $this->getType($identifier) === FileType::FILE;
     }
 
-    public function read(string|Stringable $identifier): string
+    public function read(string $identifier): string
     {
         return $this->driverClient->read($identifier);
     }
 
-    public function listDirectory(string|Stringable $identifier): DirectoryIterator
+    public function listDirectory(string $identifier = null): DirectoryIterator
     {
         return $this->driverClient->listDirectory($identifier);
     }
 
-    public function lastModified(string|Stringable $identifier): int
+    public function lastModified(string $identifier): int
     {
         return $this->driverClient->lastModified($identifier);
     }
 
-    public function size(string|Stringable $identifier): int
+    public function size(string $identifier): int
     {
         return $this->driverClient->size($identifier);
     }
 
-    public function count(string|Stringable $identifier): int
+    public function count(string $identifier): int
     {
         return $this->driverClient->count($identifier);
     }
 
-    public function mimeType(string|Stringable $identifier): string
+    public function mimeType(string $identifier): string
     {
         return $this->driverClient->mimeType($identifier);
     }
 
-    public function visibility(string|Stringable $identifier): string
+    public function visibility(string $identifier): string
     {
         return $this->driverClient->visibility($identifier);
     }
 
-    #[ReturnTypeWillChange]
-    public function getPermission(string|Stringable $identifier): Permission
+    public function getPermission(string $identifier): Permission
     {
         return $this->driverClient->getPermission($identifier);
     }
 
-    public function write(string|Stringable $identifier, string|Stringable $parentIdentifier, string $filePath, array $config = []): string
+    public function write(string $identifier, string $parentIdentifier, string $filePath, array $config = []): string
     {
-        $this->driverClient->write($identifier, $parentIdentifier, $filePath, $config);
+        return $this->driverClient->write($identifier, $parentIdentifier, $filePath, $config);
     }
 
-    public function setVisibility(string|Stringable $identifier): void
+    public function setVisibility(string $identifier): void
     {
         $this->driverClient->setVisibility($identifier);
     }
 
-    public function delete(string|Stringable $identifier): void
+    public function delete(string $identifier): void
     {
         $this->driverClient->delete($identifier);
     }
 
-    public function create(string|Stringable $identifier, string|Stringable $parentIdentifier, array $config = []): string
+    public function create(string $identifier, string $parentIdentifier, array $config = []): string
     {
-        $this->driverClient->create($identifier, $parentIdentifier, $this->config->toArray($config));
+        return $this->driverClient->create($identifier, $parentIdentifier, $this->config->toArray($config));
     }
 
-    public function move(string|Stringable $identifier, string $oldDestination, string $destination, array $config = []): void
+    public function move(string $identifier, string $oldDestination, string $destination, array $config = []): void
     {
         $this->driverClient->move($identifier, $oldDestination, $destination, $this->config->toArray($config));
     }
 
-    public function copy(string|Stringable $identifier, string $destination, array $config = []): void
+    public function copy(string $identifier, string $destination, array $config = []): void
     {
         $this->driverClient->copy($identifier, $destination, $this->config->toArray($config));
     }
@@ -121,17 +122,17 @@ class Driver implements Filesystem
         return $this->driverClient;
     }
 
-    public function rename(Stringable|string $identifier, string $newName, array $config = []): void
+    public function rename(string $identifier, string $newName, array $config = []): void
     {
         $this->driverClient->rename($identifier, $newName, $config);
     }
 
-    public function replace(Stringable|string $identifier, string $filePath, array $config = []): string
+    public function replace(string $identifier, string $filePath, array $config = []): string
     {
         return $this->driverClient->replace($identifier, $filePath, $config);
     }
 
-    public function parentOfIdentifier(Stringable|string $identifier): Directory
+    public function parentOfIdentifier(string $identifier): Directory
     {
         return $this->driverClient->parentOfIdentifier($identifier);
     }

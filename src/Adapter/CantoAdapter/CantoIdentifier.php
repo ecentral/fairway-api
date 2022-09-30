@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace Fairway\FairwayFilesystemApi\Adapter\CantoAdapter;
 
 use JetBrains\PhpStorm\ArrayShape;
-use Stringable;
 
-final class CantoIdentifier implements Stringable
+final class CantoIdentifier
 {
     private const SPLIT_IDENTIFIER = '<>';
+    private string $identifier;
 
-    public function __construct(private readonly string $identifier)
+    public function __construct(string $identifier)
     {
+        $this->identifier = $identifier;
     }
 
     public static function buildIdentifier(string $scheme, string $identifier): self

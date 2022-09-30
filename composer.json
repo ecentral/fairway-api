@@ -3,9 +3,19 @@
     "type": "library",
     "config": {
         "platform": {
-            "php": "8.1"
+            "php": "7.4"
         }
     },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://composer.typo3.org/"
+        },
+        {
+            "type": "path",
+            "url": "../fairway-pixelbox-saas-api/"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Fairway\\FairwayFilesystemApi\\": "src/"
@@ -13,6 +23,7 @@
     },
     "require": {
         "guzzlehttp/guzzle": "^7.4",
-        "fairway/canto-saas-api": "^1.0"
+        "fairway/canto-saas-api": "^1.0",
+        "fairway/pixelboxx-saas-api": "dev-main"
     }
 }

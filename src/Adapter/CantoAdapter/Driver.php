@@ -23,14 +23,17 @@ use Fairway\CantoSaasApi\Http\Upload\UploadFileRequest;
 use Fairway\FairwayFilesystemApi\Directory;
 use Fairway\FairwayFilesystemApi\DirectoryIterator;
 use Fairway\FairwayFilesystemApi\DriverClient;
+use Fairway\FairwayFilesystemApi\Exceptions\NotImplementedException;
 use Fairway\FairwayFilesystemApi\FileType;
 use Fairway\FairwayFilesystemApi\Permission;
-use Stringable;
 
 final class Driver implements DriverClient
 {
-    public function __construct(private readonly Client $client, string $userId = '')
+    private Client $client;
+
+    public function __construct(Client $client, string $userId = '')
     {
+        $this->client = $client;
         if ($this->client->getAccessToken() === null) {
             $this->client->authorizeWithClientCredentials($userId);
         }
@@ -46,14 +49,14 @@ final class Driver implements DriverClient
         return '';
     }
 
-    public function getFile(string|Stringable $identifier): CantoFile
+    public function getFile(string $identifier): CantoFile
     {
         return new CantoFile($this, $identifier);
     }
 
-    public function getMetadata(string|Stringable $identifier): array
+    public function getMetadata(string $identifier): array
     {
-        if ($this->getType($identifier) === FileType::Directory) {
+        if ($this->getType($identifier) === FileType::DIRECTORY) {
             // todo: Exception type needs to be defined
             throw new \Exception('Not supported');
         }
@@ -63,7 +66,7 @@ final class Driver implements DriverClient
         )->getResponseData();
     }
 
-    public function exists(string|Stringable $identifier, FileType $type): bool
+    public function exists(string $identifier, string $type): bool
     {
         try {
             $parsedIdentifier = $this->parseIdentifier($identifier);
@@ -79,16 +82,16 @@ final class Driver implements DriverClient
         return true;
     }
 
-    public function getType(string|Stringable $identifier): FileType
+    public function getType(string $identifier): string
     {
         $scheme = $this->parseIdentifier($identifier)->getScheme();
         if ($scheme === GetDetailsRequest::TYPE_ALBUM || $scheme === GetDetailsRequest::TYPE_FOLDER) {
-            return FileType::Directory;
+            return FileType::DIRECTORY;
         }
-        return FileType::File;
+        return FileType::FILE;
     }
 
-    public function read(string|Stringable $identifier): string
+    public function read(string $identifier): string
     {
         $parsedIdentifier = $this->parseIdentifier($identifier);
         $download2 = sprintf(
@@ -101,8 +104,11 @@ final class Driver implements DriverClient
         return $this->client->asset()->getAuthorizedUrlContent($download2)->getBody()->getContents();
     }
 
-    public function listDirectory(string|Stringable $identifier): DirectoryIterator
+    public function listDirectory(string $identifier = null): DirectoryIterator
     {
+        if ($identifier === null) {
+            throw new NotImplementedException('The root folder needs to be implemented');
+        }
         $id = $this->parseIdentifier($identifier);
         if ($id->getScheme() === GetDetailsRequest::TYPE_FOLDER) {
             $request = new GetTreeRequest($id->getIdentifier());
@@ -123,17 +129,17 @@ final class Driver implements DriverClient
         return new DirectoryIterator($result);
     }
 
-    public function lastModified(string|Stringable $identifier): int
+    public function lastModified(string $identifier): int
     {
         return (int)$this->getMetadata($identifier)['default']['Date modified'];
     }
 
-    public function size(string|Stringable $identifier): int
+    public function size(string $identifier): int
     {
         return $this->getMetadata($identifier)['default']['Size'];
     }
 
-    public function count(string|Stringable $identifier): int
+    public function count(string $identifier): int
     {
         $id = $this->parseIdentifier($identifier);
         if ($id->getScheme() === GetDetailsRequest::TYPE_FOLDER) {
@@ -146,18 +152,18 @@ final class Driver implements DriverClient
         return $response->getFound();
     }
 
-    public function mimeType(string|Stringable $identifier): string
+    public function mimeType(string $identifier): string
     {
         return $this->getMetadata($identifier)['default']['Content Type'];
     }
 
-    public function visibility(string|Stringable $identifier): string
+    public function visibility(string $identifier): string
     {
         // todo: this needs to be refined, how are we going to implement visibility
         return '';
     }
 
-    public function getPermission(string|Stringable $identifier): Permission
+    public function getPermission(string $identifier): Permission
     {
         return new CantoPermission($identifier, true, true);
     }
@@ -166,7 +172,7 @@ final class Driver implements DriverClient
      * After Uploading the file, the returned string is *not* the new identifier, it's the file name.
      * @see Driver::getUploadStatus() the status of the current upload can be retrieved here.
      */
-    public function write(string|Stringable $identifier, string|Stringable $parentIdentifier, string $filePath, array $config = []): string
+    public function write(string $identifier, string $parentIdentifier, string $filePath, array $config = []): string
     {
         $request = new UploadFileRequest(
             $filePath,
@@ -182,7 +188,7 @@ final class Driver implements DriverClient
         return $request->getFileName();
     }
 
-    public function getUploadStatus(string $fileName): Status|null
+    public function getUploadStatus(string $fileName): ?Status
     {
         $status = $this->client->upload()->queryUploadStatus(new QueryUploadStatusRequest());
         foreach ($status->getStatusItems() as $item) {
@@ -193,7 +199,7 @@ final class Driver implements DriverClient
         return null;
     }
 
-    public function getIdentifierFromStatusObject(Status $status): CantoIdentifier|null
+    public function getIdentifierFromStatusObject(Status $status): ?CantoIdentifier
     {
         if ($status->status === Status::STATUS_DONE) {
             return CantoIdentifier::buildIdentifier($status->scheme, $status->id);
@@ -201,15 +207,15 @@ final class Driver implements DriverClient
         return null;
     }
 
-    public function setVisibility(string|Stringable $identifier): void
+    public function setVisibility(string $identifier): void
     {
         // TODO: Implement setVisibility() method.
     }
 
-    public function delete(string|Stringable $identifier): void
+    public function delete(string $identifier): void
     {
         $cantoId = $this->parseIdentifier($identifier);
-        if ($this->getType($identifier) === FileType::Directory) {
+        if ($this->getType($identifier) === FileType::DIRECTORY) {
             $request = new DeleteFolderOrAlbumRequest();
             $request->addFolder($cantoId->getIdentifier(), $cantoId->getScheme());
             $this->client->libraryTree()->deleteFolderOrAlbum($request)->isSuccessful();
@@ -220,7 +226,7 @@ final class Driver implements DriverClient
         $this->client->asset()->batchDeleteContent($request);
     }
 
-    public function create(string|Stringable $identifier, string|Stringable $parentIdentifier, array $config = []): string
+    public function create(string $identifier, string $parentIdentifier, array $config = []): string
     {
         $cantoId = $this->parseIdentifier($identifier);
         if ($cantoId->getScheme() === GetDetailsRequest::TYPE_FOLDER) {
@@ -232,21 +238,21 @@ final class Driver implements DriverClient
         return $this->createFile($identifier, $parentIdentifier, $config);
     }
 
-    private function createAlbum(string|Stringable $identifier, string|Stringable $parentIdentifier, array $config = []): string
+    private function createAlbum(string $identifier, string $parentIdentifier, array $config = []): string
     {
         $request = new CreateAlbumFolderRequest($identifier);
         $request->setParentFolder($this->parseIdentifier($parentIdentifier)->getIdentifier());
         return $this->client->libraryTree()->createAlbum($request)->getId();
     }
 
-    private function createFolder(string|Stringable $identifier, string|Stringable $parentIdentifier, array $config = []): string
+    private function createFolder(string $identifier, string $parentIdentifier, array $config = []): string
     {
         $request = new CreateAlbumFolderRequest($identifier);
         $request->setParentFolder($this->parseIdentifier($parentIdentifier)->getIdentifier());
         return $this->client->libraryTree()->createFolder($request)->getId();
     }
 
-    public function createFile(string|Stringable $identifier, string|Stringable $parentIdentifier, array $config = []): string
+    public function createFile(string $identifier, string $parentIdentifier, array $config = []): string
     {
         $path = '/tmp/' . $identifier;
         touch($path);
@@ -254,9 +260,9 @@ final class Driver implements DriverClient
         return $this->write($identifier, $parentIdentifier, $path, $config);
     }
 
-    public function move(string|Stringable $identifier, string $oldDestination, string $destination, array $config = []): void
+    public function move(string $identifier, string $oldDestination, string $destination, array $config = []): void
     {
-        if ($this->getType($identifier) === FileType::File) {
+        if ($this->getType($identifier) === FileType::FILE) {
             $this->copy($identifier, $destination, $config);
             $this->client->asset()->removeContentsFromAlbum(
                 new RemoveContentFromAlbumRequest($this->parseIdentifier($oldDestination)->getIdentifier())
@@ -265,9 +271,9 @@ final class Driver implements DriverClient
         // todo: move directory
     }
 
-    public function copy(string|Stringable $identifier, string $destination, array $config = []): void
+    public function copy(string $identifier, string $destination, array $config = []): void
     {
-        if ($this->getType($identifier) === FileType::File) {
+        if ($this->getType($identifier) === FileType::FILE) {
             $file = $this->getFile($identifier);
             $request = new AssignContentToAlbumRequest($this->parseIdentifier($destination)->getIdentifier());
             $request->addContent($file->getScheme(), $file->getIdentifier(), $file->getFileName());
@@ -277,14 +283,14 @@ final class Driver implements DriverClient
 
     }
 
-    public function rename(Stringable|string $identifier, string $newName, array $config = []): void
+    public function rename(string $identifier, string $newName, array $config = []): void
     {
         $cantoId = $this->parseIdentifier($identifier);
         $request = new RenameContentRequest($cantoId->getScheme(), $cantoId->getIdentifier(), $newName);
         $this->client->asset()->renameContent($request);
     }
 
-    public function replace(Stringable|string $identifier, string $filePath, array $config = []): string
+    public function replace(string $identifier, string $filePath, array $config = []): string
     {
         $cantoId = $this->parseIdentifier($identifier);
         $request = new UploadFileRequest(
@@ -297,19 +303,27 @@ final class Driver implements DriverClient
         if (($config['remove_original'] ?? false) === true) {
             unlink($filePath);
         }
-        return (string)$identifier;
+        return $identifier;
     }
 
-    private function parseIdentifier(string|Stringable $identifier): CantoIdentifier
+    private function parseIdentifier(string $identifier): CantoIdentifier
     {
-        if ($identifier instanceof CantoIdentifier) {
-            return $identifier;
-        }
-        return new CantoIdentifier((string)$identifier);
+        return new CantoIdentifier($identifier);
     }
 
-    public function parentOfIdentifier(Stringable|string $identifier): Directory
+    public function parentOfIdentifier(string $identifier): Directory
     {
-        return new Directory();
+        throw new \Exception('Not supported yet');
+//        return new Directory();
+    }
+
+    public function getClient(): Client
+    {
+        return $this->client;
+    }
+
+    public function getDriver(): DriverClient
+    {
+        throw new \Exception('Not supported yet');
     }
 }

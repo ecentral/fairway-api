@@ -5,13 +5,9 @@ declare(strict_types=1);
 namespace Fairway\FairwayFilesystemApi;
 
 use JetBrains\PhpStorm\ArrayShape;
-use Stringable;
 
 abstract class Permission
 {
-    /**
-     * todo: refactor as enum
-     */
     public const ACTION_CREATE_FILE = 'create_file';
     public const ACTION_CREATE_FOLDER = 'create_folder';
     public const ACTION_UPDATE_FILE = 'update_file';
@@ -23,12 +19,19 @@ abstract class Permission
     public const ACTION_DELETE_FILE = 'delete_file';
     public const ACTION_DELETE_FOLDER = 'delete_folder';
 
+    protected string $identifier;
+    protected bool $read;
+    protected bool $write;
+
     public function __construct(
-        protected readonly string|Stringable $identifier,
-        protected readonly bool $read = false,
-        protected readonly bool $write = false,
+        string $identifier,
+        bool $read = false,
+        bool $write = false
     )
     {
+        $this->identifier = $identifier;
+        $this->read = $read;
+        $this->write = $write;
     }
 
     public function canRead(): bool
