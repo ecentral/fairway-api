@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Fairway\FairwayFilesystemApi\Adapter\PixelboxxAdapter;
 
-
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 
@@ -11,10 +10,13 @@ final class PixelboxxClient
 {
     private ClientInterface $client;
     private array $defaultConfiguration = [];
+    private array $configuration = [];
+    private string $baseUrl;
 
-    public function __construct(private readonly string $baseUrl, private array $configuration = [])
+    public function __construct(string $baseUrl, array $configuration = [])
     {
-
+        $this->baseUrl = $baseUrl;
+        $this->configuration = $configuration;
     }
 
     public function authenticate(string $username, string $password)
@@ -29,7 +31,6 @@ final class PixelboxxClient
                 ]
             ]
         );
-        var_dump($response->getBody()->getContents());
     }
 
     private function getConfiguration(): array

@@ -48,6 +48,11 @@ final class Driver implements DriverClient
         return new PixelboxxFile($this, $identifier);
     }
 
+    public function getPublicUrl(string $identifier): string
+    {
+        return $this->client->assets()->getThumbnail($identifier)->getUrl();
+    }
+
     public function getMetadata(string $identifier): array
     {
         if ($this->getType($identifier) === FileType::DIRECTORY) {

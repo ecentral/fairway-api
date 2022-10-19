@@ -11,4 +11,6 @@ interface DriverClient extends Filesystem
     public function getFile(string $identifier): File;
 
     public function getMetadata(string $identifier): array;
+
+    public function getPublicUrl(string $identifier): string;
 }
