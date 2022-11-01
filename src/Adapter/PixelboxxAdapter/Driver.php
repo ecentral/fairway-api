@@ -68,6 +68,7 @@ final class Driver implements DriverClient
         /** @var MetadataGroup[] $metadataGroups */
         $metadataGroups = $this->client->assets()->getAsset($identifier, function (AssetMetadata $metadata) {
             $metadata->setFull(true);
+            $metadata->setLocalizedValues(true);
             $metadata->setAllMeta(true);
         })->getAsset()->getMetadata();
         $metadata = [];
