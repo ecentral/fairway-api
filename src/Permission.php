@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of the "fairway_api" library by eCentral GmbH.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE file that was distributed with this source code.
+ */
+
 namespace Fairway\FairwayFilesystemApi;
 
 use JetBrains\PhpStorm\ArrayShape;
@@ -27,8 +34,7 @@ abstract class Permission
         string $identifier,
         bool $read = false,
         bool $write = false
-    )
-    {
+    ) {
         $this->identifier = $identifier;
         $this->read = $read;
         $this->write = $write;
@@ -46,7 +52,7 @@ abstract class Permission
 
     abstract public function hasPermission(string $action): bool;
 
-    #[ArrayShape(['r' => "bool", 'w' => "bool"])]
+    #[ArrayShape(['r' => 'bool', 'w' => 'bool'])]
     public function __toArray(): array
     {
         return [
