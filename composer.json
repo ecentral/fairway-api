@@ -23,7 +23,9 @@
     },
     "require": {
         "guzzlehttp/guzzle": "^7.4",
-        "fairway/canto-saas-api": "^1.0",
-        "fairway/pixelboxx-saas-api": "dev-main"
-    }
+        "fairway/canto-saas-api": "*",
+        "fairway/pixelboxx-saas-api": "*"
+    },
+	"minimum-stability": "dev"
+
 }
