@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of the "fairway_api" library by eCentral GmbH.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE file that was distributed with this source code.
+ */
+
 namespace Fairway\FairwayFilesystemApi\Adapter\CantoAdapter;
 
 use JetBrains\PhpStorm\ArrayShape;
@@ -31,7 +38,7 @@ final class CantoIdentifier
         return $this->split()['identifier'];
     }
 
-    #[ArrayShape(['scheme' => "string", 'identifier' => "string"])]
+    #[ArrayShape(['scheme' => 'string', 'identifier' => 'string'])]
     private function split(): array
     {
         [$scheme, $identifier] = explode(self::SPLIT_IDENTIFIER, $this->identifier);

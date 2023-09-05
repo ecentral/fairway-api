@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of the "fairway_api" library by eCentral GmbH.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE file that was distributed with this source code.
+ */
+
 namespace Fairway\FairwayFilesystemApi\Adapter\CantoAdapter;
 
 use Exception;
@@ -280,7 +287,6 @@ final class Driver implements DriverClient
             $this->client->asset()->assignContentToAlbum($request);
         }
         // todo: copy directory
-
     }
 
     public function rename(string $identifier, string $newName, array $config = []): void
